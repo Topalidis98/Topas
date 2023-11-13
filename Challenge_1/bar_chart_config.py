@@ -9,21 +9,33 @@ import altair as alt
 # Global variable to track the current tab
 # Global variable to track the current tab
 current_tab = 'Homepage'
-def plot_interactive_bar_chart():
+def plot_interactive_bar_chart_EDA():
     
-    # Load your CSV file into a DataFrame
+   # Load your CSV file into a DataFrame
     df = pd.read_csv(r"C:\Users\kosta\streamlit\Exporting_data_file\11-11-2023 18h22m18s\df_eda.csv")
     
+    # Exclude values less than 0.5 for mode, median, and mean calculation
+    filtered_df = df[df['EDA'] >= 1]
+    
     # Define the bins and labels for the categories
-    bins = [1, 4, 8, float('inf')]
+    bins = [0.5, 4, 8, float('inf')]
     labels = ['Low', 'Medium', 'High']
     
-    # Create a new column 'Category' based on the 'EDA' values
-    df['Category'] = pd.cut(df['EDA'], bins=bins, labels=labels, right=False)
-    
+    # Create a new column 'Category' based on the filtered 'EDA' values
+    filtered_df['Category'] = pd.cut(filtered_df['EDA'], bins=bins, labels=labels, right=False)
     
     # Group the DataFrame by 'Category' and 'EDA', and count occurrences
-    grouped_df = df.groupby(['Category', 'EDA']).size().reset_index(name='Count')
+    grouped_df = filtered_df.groupby(['Category', 'EDA']).size().reset_index(name='Count')
+    
+    # Calculate median, mean, and mode from the filtered 'EDA' column
+    median_value = filtered_df['EDA'].median()
+    mean_value = filtered_df['EDA'].mean()
+    mode_value = filtered_df['EDA'].mode().iloc[0]  # mode() returns a Series, so use iloc[0] to get the actual value
+    
+    # Display the numeric values
+    st.write(f"Median : {median_value}")
+    st.write(f"Mean : {mean_value}")
+    st.write(f"Mode: {mode_value}")
     
     # Create a bar chart using altair
     chart = alt.Chart(grouped_df).mark_bar().encode(
@@ -36,6 +48,44 @@ def plot_interactive_bar_chart():
     # Display the chart using st.altair_chart
     st.altair_chart(chart, use_container_width=True)
     
+def plot_interactive_bar_chart_BVP():
+    
+   # Load your CSV file into a DataFrame
+    df = pd.read_csv(r"C:\Users\kosta\streamlit\Exporting_data_file\11-11-2023 18h11m22s\df_bvp.csv")
+    
+   # Exclude values outside the range of -500 to +500 for the 'BVP' column
+    filtered_df = df[(df['BVP'] >= 2) & (df['BVP'] <= 260)]
+
+    # Define the bins and labels for the categories
+    bins = [ 1.5, 4, 8, 500]
+    labels = [ 'Low', 'Medium', 'High']
+
+    # Create a new column 'Category' based on the filtered 'BVP' values
+    filtered_df['Category'] = pd.cut(filtered_df['BVP'], bins=bins, labels=labels, right=False)
+
+    # Group the DataFrame by 'Category' and 'BVP', and count occurrences
+    grouped_df = filtered_df.groupby(['Category', 'BVP']).size().reset_index(name='Count')
+
+    # Calculate median, mean, and mode from the filtered 'BVP' column
+    median_value = filtered_df['BVP'].median()
+    mean_value = filtered_df['BVP'].mean()
+    mode_value = filtered_df['BVP'].mode().iloc[0]  # mode() returns a Series, so use iloc[0] to get the actual value
+
+    # Display the numeric values
+    st.write(f"Median : {median_value}")
+    st.write(f"Mean : {mean_value}")
+    st.write(f"Mode: {mode_value}")
+
+    # Create a bar chart using altair
+    chart = alt.Chart(grouped_df).mark_bar().encode(
+        x='BVP:Q',
+        y='Count:Q',
+        color='Category:N',
+        tooltip=['Category:N', 'BVP:Q', 'Count:Q']
+    )
+
+    # Display the chart using st.altair_chart
+    st.altair_chart(chart, use_container_width=True)
     
 # Function to plot interactive line charts for EDA and BVP
 def plot_interactive_line_charts(data, start_time_eda, end_time_eda, start_time_bvp, end_time_bvp):
@@ -53,7 +103,7 @@ def plot_interactive_line_charts(data, start_time_eda, end_time_eda, start_time_
     )
     
     st.plotly_chart(fig_eda)
-    plot_interactive_bar_chart()
+    plot_interactive_bar_chart_EDA()
 
     # Filter data for BVP based on time range
     filtered_data_bvp = data[(data['Time'] >= start_time_bvp) & (data['Time'] <= end_time_bvp)]
@@ -67,7 +117,7 @@ def plot_interactive_line_charts(data, start_time_eda, end_time_eda, start_time_
     )
     
     st.plotly_chart(fig_bvp)
-    plot_interactive_bar_chart()
+    plot_interactive_bar_chart_BVP()
 
 # Function to manage food consumption history in Tab 2
 def manage_food_history():
