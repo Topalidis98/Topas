@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import matplotlib.pyplot as plt
-import pandas as pd
 import altair as alt
 
 current_tab = 'Homepage'
@@ -16,24 +14,25 @@ def plot_interactive_bar_chart_EDA():
     labels = ['Low', 'Medium', 'High']
     
     filtered_df['Category'] = pd.cut(filtered_df['EDA'], bins=bins, labels=labels, right=False)
-    
+
     grouped_df = filtered_df.groupby(['Category', 'EDA']).size().reset_index(name='Count')
-    
+   
     median_value = filtered_df['EDA'].median()
     mean_value = filtered_df['EDA'].mean()
     mode_value = filtered_df['EDA'].mode().iloc[0]  
-    
-    st.write(f"Median : {median_value}")
-    st.write(f"Mean : {mean_value}")
-    st.write(f"Mode: {mode_value}")
-    
+
     chart = alt.Chart(grouped_df).mark_bar().encode(
         x='EDA:Q',
         y='Count:Q',
         color='Category:N',
         tooltip=['Category:N', 'EDA:Q', 'Count:Q']
     )
-    
+
+    chart = chart + \
+        alt.Chart(pd.DataFrame({'value': [mean_value]})).mark_rule(color='red').encode(x='value:Q', size=alt.value(2)) + \
+        alt.Chart(pd.DataFrame({'value': [median_value]})).mark_rule(color='green').encode(x='value:Q', size=alt.value(2)) + \
+        alt.Chart(pd.DataFrame({'value': [mode_value]})).mark_rule(color='blue').encode(x='value:Q', size=alt.value(2))
+
     st.altair_chart(chart, use_container_width=True)
     
 def plot_interactive_bar_chart_BVP():
@@ -52,10 +51,6 @@ def plot_interactive_bar_chart_BVP():
     median_value = filtered_df['BVP'].median()
     mean_value = filtered_df['BVP'].mean()
     mode_value = filtered_df['BVP'].mode().iloc[0]  
-    
-    st.write(f"Median : {median_value}")
-    st.write(f"Mean : {mean_value}")
-    st.write(f"Mode: {mode_value}")
 
     chart = alt.Chart(grouped_df).mark_bar().encode(
         x='BVP:Q',
@@ -64,10 +59,15 @@ def plot_interactive_bar_chart_BVP():
         tooltip=['Category:N', 'BVP:Q', 'Count:Q']
     )
 
+    chart = chart + \
+        alt.Chart(pd.DataFrame({'value': [mean_value]})).mark_rule(color='red').encode(x='value:Q', size=alt.value(2)) + \
+        alt.Chart(pd.DataFrame({'value': [median_value]})).mark_rule(color='green').encode(x='value:Q', size=alt.value(2)) + \
+        alt.Chart(pd.DataFrame({'value': [mode_value]})).mark_rule(color='blue').encode(x='value:Q', size=alt.value(2))
+
     st.altair_chart(chart, use_container_width=True)
     
+    
 def plot_interactive_line_charts(data, start_time_eda, end_time_eda, start_time_bvp, end_time_bvp):
-    st.subheader('Line Charts')
     
     filtered_data_eda = data[(data['Time'] >= start_time_eda) & (data['Time'] <= end_time_eda)]
     
@@ -191,7 +191,6 @@ def homepage_content():
     
 @st.cache_resource(experimental_allow_widgets=True)
 def gym_content(data):
-    st.write('This is the gym content.')
 
     plot_interactive_line_charts(data, data['Time'].min(), data['Time'].max(), data['Time'].min(), data['Time'].max())
 
