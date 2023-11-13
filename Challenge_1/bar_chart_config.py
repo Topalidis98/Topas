@@ -5,39 +5,28 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import altair as alt
 
-
-# Global variable to track the current tab
-# Global variable to track the current tab
 current_tab = 'Homepage'
 def plot_interactive_bar_chart_EDA():
     
-   # Load your CSV file into a DataFrame
     df = pd.read_csv(r"C:\Users\kosta\streamlit\Exporting_data_file\11-11-2023 18h22m18s\df_eda.csv")
-    
-    # Exclude values less than 0.5 for mode, median, and mean calculation
+
     filtered_df = df[df['EDA'] >= 1]
     
-    # Define the bins and labels for the categories
     bins = [0.5, 4, 8, float('inf')]
     labels = ['Low', 'Medium', 'High']
     
-    # Create a new column 'Category' based on the filtered 'EDA' values
     filtered_df['Category'] = pd.cut(filtered_df['EDA'], bins=bins, labels=labels, right=False)
     
-    # Group the DataFrame by 'Category' and 'EDA', and count occurrences
     grouped_df = filtered_df.groupby(['Category', 'EDA']).size().reset_index(name='Count')
     
-    # Calculate median, mean, and mode from the filtered 'EDA' column
     median_value = filtered_df['EDA'].median()
     mean_value = filtered_df['EDA'].mean()
-    mode_value = filtered_df['EDA'].mode().iloc[0]  # mode() returns a Series, so use iloc[0] to get the actual value
+    mode_value = filtered_df['EDA'].mode().iloc[0]  
     
-    # Display the numeric values
     st.write(f"Median : {median_value}")
     st.write(f"Mean : {mean_value}")
     st.write(f"Mode: {mode_value}")
     
-    # Create a bar chart using altair
     chart = alt.Chart(grouped_df).mark_bar().encode(
         x='EDA:Q',
         y='Count:Q',
@@ -45,38 +34,29 @@ def plot_interactive_bar_chart_EDA():
         tooltip=['Category:N', 'EDA:Q', 'Count:Q']
     )
     
-    # Display the chart using st.altair_chart
     st.altair_chart(chart, use_container_width=True)
     
 def plot_interactive_bar_chart_BVP():
     
-   # Load your CSV file into a DataFrame
     df = pd.read_csv(r"C:\Users\kosta\streamlit\Exporting_data_file\11-11-2023 18h11m22s\df_bvp.csv")
     
-   # Exclude values outside the range of -500 to +500 for the 'BVP' column
     filtered_df = df[(df['BVP'] >= 2) & (df['BVP'] <= 260)]
 
-    # Define the bins and labels for the categories
     bins = [ 1.5, 4, 8, 500]
     labels = [ 'Low', 'Medium', 'High']
 
-    # Create a new column 'Category' based on the filtered 'BVP' values
     filtered_df['Category'] = pd.cut(filtered_df['BVP'], bins=bins, labels=labels, right=False)
 
-    # Group the DataFrame by 'Category' and 'BVP', and count occurrences
     grouped_df = filtered_df.groupby(['Category', 'BVP']).size().reset_index(name='Count')
-
-    # Calculate median, mean, and mode from the filtered 'BVP' column
+   
     median_value = filtered_df['BVP'].median()
     mean_value = filtered_df['BVP'].mean()
-    mode_value = filtered_df['BVP'].mode().iloc[0]  # mode() returns a Series, so use iloc[0] to get the actual value
-
-    # Display the numeric values
+    mode_value = filtered_df['BVP'].mode().iloc[0]  
+    
     st.write(f"Median : {median_value}")
     st.write(f"Mean : {mean_value}")
     st.write(f"Mode: {mode_value}")
 
-    # Create a bar chart using altair
     chart = alt.Chart(grouped_df).mark_bar().encode(
         x='BVP:Q',
         y='Count:Q',
@@ -84,17 +64,13 @@ def plot_interactive_bar_chart_BVP():
         tooltip=['Category:N', 'BVP:Q', 'Count:Q']
     )
 
-    # Display the chart using st.altair_chart
     st.altair_chart(chart, use_container_width=True)
     
-# Function to plot interactive line charts for EDA and BVP
 def plot_interactive_line_charts(data, start_time_eda, end_time_eda, start_time_bvp, end_time_bvp):
     st.subheader('Line Charts')
     
-    # Filter data for EDA based on time range
     filtered_data_eda = data[(data['Time'] >= start_time_eda) & (data['Time'] <= end_time_eda)]
     
-    # Plot line chart for EDA
     fig_eda = px.line(filtered_data_eda, x='Time', y='EDA', title="EDA")
     fig_eda.update_layout(
         xaxis_title='Time',
@@ -105,10 +81,8 @@ def plot_interactive_line_charts(data, start_time_eda, end_time_eda, start_time_
     st.plotly_chart(fig_eda)
     plot_interactive_bar_chart_EDA()
 
-    # Filter data for BVP based on time range
     filtered_data_bvp = data[(data['Time'] >= start_time_bvp) & (data['Time'] <= end_time_bvp)]
-    
-    # Plot line chart for BVP
+
     fig_bvp = px.line(filtered_data_bvp, x='Time', y='BVP', title="BVP")
     fig_bvp.update_layout(
         xaxis_title='Time',
@@ -119,56 +93,41 @@ def plot_interactive_line_charts(data, start_time_eda, end_time_eda, start_time_
     st.plotly_chart(fig_bvp)
     plot_interactive_bar_chart_BVP()
 
-# Function to manage food consumption history in Tab 2
 def manage_food_history():
     st.subheader('Food Consumption Tracker')
     
-    # Create or load the food history data
     if 'food_history' not in st.session_state:
         st.session_state.food_history = pd.DataFrame(columns=['Datetime', 'Food', 'Calories'])
     
-    # Input for the user to enter consumed food and calories
     food_consumed = st.text_input('Enter the Consumed Food:')
     calories_consumed = st.number_input('Enter the Calories Consumed:', min_value=0)
     
-    # Button to add the input to the history
     if st.button('Add to History'):
         current_datetime = pd.Timestamp.now()
         st.session_state.food_history = st.session_state.food_history.append({'Datetime': current_datetime, 'Food': food_consumed, 'Calories': calories_consumed}, ignore_index=True)
         st.success(f"Added: {food_consumed} with {calories_consumed} calories at {current_datetime} to the history.")
 
-    # Expander to show and hide the history
     with st.expander("Food Consumption History"):
         st.write(st.session_state.food_history)
 
-    # Calculate and display average weekly calorie consumption
     st.subheader('Average Weekly Calorie Consumption')
     st.session_state.food_history['Datetime'] = pd.to_datetime(st.session_state.food_history['Datetime'])
     weekly_calories_user = st.session_state.food_history.set_index('Datetime').resample('W-Mon')['Calories'].sum()
     average_weekly_calories_user = weekly_calories_user.mean()
     st.write(f'The average weekly calorie consumption based on user inputs is: {average_weekly_calories_user:.2f} calories.')
 
-    # Calculate and display average weekly calorie consumption for the entire history
     weekly_calories_total = st.session_state.food_history.resample('W-Mon', on='Datetime')['Calories'].sum()
     average_weekly_calories_total = weekly_calories_total.mean()
     st.write(f'The average weekly calorie consumption for the entire history is: {average_weekly_calories_total:.2f} calories.')
 
-
-
-    # Add content for Tab 3 as needed
-
-# Main Streamlit app
 def main():
     global current_tab
 
-    # Read data from CSV file
     csv_file_path = r"C:\Users\kosta\streamlit\Exporting_data_file\11-11-2023 14h46m51s\df_result.csv"
     data = pd.read_csv(csv_file_path)
 
-    # Convert 'Time' column to datetime format
     data['Time'] = pd.to_datetime(data['Time'])
 
-    # Header with navigation buttons
     header_html = """
         <style>
             .header {
@@ -191,15 +150,13 @@ def main():
             </div>
         </div>
     """
-
+    
     st.markdown(header_html, unsafe_allow_html=True)
 
-    # Extract the tab name from the URL
     tab = st.experimental_get_query_params().get("tab", ["Homepage"])[0]
 
-    current_tab = tab  # Update the current tab
-
-    # Render content for the selected tab
+    current_tab = tab  
+    
     if st.button("Homepage"):
         current_tab = 'Homepage'
         st.experimental_set_query_params(tab=current_tab)
@@ -220,50 +177,32 @@ def main():
         st.experimental_set_query_params(tab=current_tab)
         popup_content()
 
-
-    # Function for Homepage content
 @st.cache_resource(experimental_allow_widgets=True)
 def homepage_content():
-    
     st.write('This is the homepage content.')
 
     st.title('Welcome to Your App Homepage')
     
-    # Add some introductory text
     st.write('This is the homepage of your phone app.')
 
-    # Display a calendar image (replace the URL with your own image)
     st.image(r"C:\Users\kosta\Downloads\image (2).png", caption='Your Calendar Image', use_column_width=True)
 
-    # Add any additional content you want for the homepage
     st.write('Feel free to explore other tabs using the navigation sidebar.')
     
-   
-
-
-# Function for Gym content
 @st.cache_resource(experimental_allow_widgets=True)
 def gym_content(data):
     st.write('This is the gym content.')
 
-    # Call function for interactive line charts
     plot_interactive_line_charts(data, data['Time'].min(), data['Time'].max(), data['Time'].min(), data['Time'].max())
 
-
-
-# Function for Health content
 @st.cache_resource(experimental_allow_widgets=True)
 def health_content():
     st.write('This is the health content.')
     manage_food_history()
     
-
-
-# Function for Pop-up content
 @st.cache_resource(experimental_allow_widgets=True)
 def popup_content():
     st.write('This is the pop-up content.')
         
-
 if __name__ == '__main__':
     main()
