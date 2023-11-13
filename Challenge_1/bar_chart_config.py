@@ -3,13 +3,40 @@ import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
 import pandas as pd
-
+import altair as alt
 
 
 # Global variable to track the current tab
 # Global variable to track the current tab
 current_tab = 'Homepage'
-
+def plot_interactive_bar_chart():
+    
+    # Load your CSV file into a DataFrame
+    df = pd.read_csv(r"C:\Users\kosta\streamlit\Exporting_data_file\11-11-2023 18h22m18s\df_eda.csv")
+    
+    # Define the bins and labels for the categories
+    bins = [1, 4, 8, float('inf')]
+    labels = ['Low', 'Medium', 'High']
+    
+    # Create a new column 'Category' based on the 'EDA' values
+    df['Category'] = pd.cut(df['EDA'], bins=bins, labels=labels, right=False)
+    
+    
+    # Group the DataFrame by 'Category' and 'EDA', and count occurrences
+    grouped_df = df.groupby(['Category', 'EDA']).size().reset_index(name='Count')
+    
+    # Create a bar chart using altair
+    chart = alt.Chart(grouped_df).mark_bar().encode(
+        x='EDA:Q',
+        y='Count:Q',
+        color='Category:N',
+        tooltip=['Category:N', 'EDA:Q', 'Count:Q']
+    )
+    
+    # Display the chart using st.altair_chart
+    st.altair_chart(chart, use_container_width=True)
+    
+    
 # Function to plot interactive line charts for EDA and BVP
 def plot_interactive_line_charts(data, start_time_eda, end_time_eda, start_time_bvp, end_time_bvp):
     st.subheader('Line Charts')
@@ -26,6 +53,7 @@ def plot_interactive_line_charts(data, start_time_eda, end_time_eda, start_time_
     )
     
     st.plotly_chart(fig_eda)
+    plot_interactive_bar_chart()
 
     # Filter data for BVP based on time range
     filtered_data_bvp = data[(data['Time'] >= start_time_bvp) & (data['Time'] <= end_time_bvp)]
@@ -39,6 +67,7 @@ def plot_interactive_line_charts(data, start_time_eda, end_time_eda, start_time_
     )
     
     st.plotly_chart(fig_bvp)
+    plot_interactive_bar_chart()
 
 # Function to manage food consumption history in Tab 2
 def manage_food_history():
@@ -169,37 +198,6 @@ def gym_content(data):
 
     # Call function for interactive line charts
     plot_interactive_line_charts(data, data['Time'].min(), data['Time'].max(), data['Time'].min(), data['Time'].max())
-
-    # Read data for the bar chart from another CSV file
-    bar_chart_data_path = r"C:\Users\kosta\streamlit\Exporting_data_file\11-11-2023 18h22m18s\df_eda.csv"
-    bar_chart_data = pd.read_csv(bar_chart_data_path)
-
-    # Categorize values into Low, Medium, and High based on percentiles
-    low_threshold = bar_chart_data['EDA'].quantile(0.33)
-    high_threshold = bar_chart_data['EDA'].quantile(0.67)
-
-    bar_chart_data['Category'] = pd.cut(bar_chart_data['EDA'], bins=[float('-inf'), low_threshold, high_threshold, float('inf')],
-                              labels=['Low', 'Medium', 'High'])
-
-    # Create a bar chart for the new data
-    fig, ax = plt.subplots()
-
-    # Count the occurrences in each category
-    category_counts = bar_chart_data['Category'].value_counts()
-
-    # Bar for each category
-    for category in category_counts.index:
-        ax.bar(category, category_counts[category], label=category)
-
-    ax.set_ylabel('Count')
-    ax.set_title('Category Distribution from Bar Chart Data')
-    ax.legend(title='Category')
-
-    # Set y-axis limits
-    ax.set_ylim(0, 50)
-
-    # Display the bar chart using st.pyplot
-    st.pyplot(fig)
 
 
 
